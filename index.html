@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b3a75">
+  <meta name="theme-color" content="#8b1e23">
   <title>求是路 · 一名新生走过的一百三十年</title>
-  <meta name="description" content="浙江大学建校一百三十周年互动网页。一名新生从求是书院走到启真湖，再为这四年选定一件要做的事。">
+  <meta name="description" content="浙江大学建校一百三十周年互动网页。一名新生从求是书院走到启真湖边，为自己的四年选定一件要做的事。">
   <style>
     :root {
       --paper: #f3efe6;
       --card: #fffcf7;
       --ink: #1b1916;
-      --blue: #0b3a75;
-      --blue-soft: #e6eef7;
+      --blue: #8b1e23;
+      --blue-soft: #f8ebe8;
       --bronze: #8a6232;
       --line: #ddd4c4;
       --quiet: #5c564c;
@@ -132,6 +132,8 @@
       border-color: var(--blue);
     }
 
+    .choice.on { border-color: var(--blue); background: var(--blue-soft); }
+
     .choice strong, .school strong { display: block; font-weight: 700; }
 
     .choice span, .school span {
@@ -151,8 +153,8 @@
     }
 
     .primary:disabled {
-      background: #9aa8bc;
-      border-color: #9aa8bc;
+      background: #c4a6a6;
+      border-color: #c4a6a6;
       cursor: not-allowed;
     }
 
@@ -252,6 +254,66 @@
       border-left: 3px solid var(--blue);
     }
 
+    body.modal-open { overflow: hidden; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .modal-mask {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      min-height: 0;
+      background: rgba(27, 25, 22, 0.48);
+      cursor: pointer;
+    }
+
+    .modal-box {
+      position: relative;
+      z-index: 1;
+      width: min(560px, 100%);
+      max-height: min(78dvh, 680px);
+      overflow: auto;
+      padding: 28px 24px 22px;
+      background: var(--card);
+      border: 2px solid var(--blue);
+      box-shadow: 0 0 0 7px rgba(243, 239, 230, 0.94), 0 18px 40px rgba(27, 25, 22, 0.2);
+      animation: modal-rise 0.28s ease;
+    }
+
+    .modal-box .prose p:last-child { margin-bottom: 0; }
+
+    .modal-extra {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .modal-actions { margin-top: 18px; }
+
+    @keyframes modal-rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .modal-box { animation: none; }
+    }
+
     @media (max-width: 640px) {
       .wrap { width: min(720px, calc(100% - 24px)); }
       h2 { font-size: 30px; }
@@ -281,10 +343,10 @@
     ];
 
     const SCHOOLS = [
-      { id: "zju", name: "浙江大学", clue: "当时以工科为主体", place: "yuquan" },
-      { id: "hdu", name: "杭州大学", clue: "文理学科集中于此", place: "xixi" },
-      { id: "zau", name: "浙江农业大学", clue: "农学在此，园中有池", place: "huajiachi" },
-      { id: "zmu", name: "浙江医科大学", clue: "旧址靠近西湖东岸", place: "hubin" }
+      { id: "zju", name: "浙江大学", clue: "当时以工科为学校主体", place: "yuquan" },
+      { id: "hdu", name: "杭州大学", clue: "文理诸科多集中于此", place: "xixi" },
+      { id: "zau", name: "浙江农业大学", clue: "农学在此，园中有一池", place: "huajiachi" },
+      { id: "zmu", name: "浙江医科大学", clue: "旧址靠近西湖的东岸", place: "hubin" }
     ];
 
     const PLACES = [
@@ -294,7 +356,7 @@
       { id: "hubin", name: "湖滨" }
     ];
 
-    const DEFAULT_WISH = "一百三十年求是不止，我愿把小事做真。";
+    const DEFAULT_WISH = "一百三十年求是未止，我愿把小事做到真处。";
 
     const state = {
       scene: "cover",
@@ -309,8 +371,9 @@
       matched: {},
       placeOrder: [],
       mistakes: 0,
-      feedback: "",
-      phase: "ask"
+      phase: "ask",
+      // 交互之后才出现的话，不写进页面，只放进弹窗。
+      modal: null
     };
 
     const app = document.getElementById("app");
@@ -436,22 +499,109 @@
       const back = ["cover", "card", "about"].includes(state.scene)
         ? ""
         : `<p><button type="button" data-act="back-step">上一步</button></p>`;
-      return `<div class="foot">${back}<p>浙江大学「素养」课传播实践 · 创意类网页游戏</p><p>校史依据学校公开记载。文案与交互由人工智能辅助生成。线描为原创简笔，不是校徽原图。${about}</p></div>`;
+      return `<div class="foot">${back}<p>浙江大学「素养」课传播实践 · 创意类网页游戏</p><p>校史依据学校公开记载。文案与交互由人工智能辅助写成，线描则是原创简笔，并非校徽原图。${about}</p></div>`;
     }
 
     function choiceButtons(group, list) {
-      return `<div class="choices">${list.map((item) =>
-        `<button type="button" class="choice" data-act="choose" data-group="${group}" data-id="${esc(item.id)}"><strong>${esc(item.title)}</strong></button>`
-      ).join("")}</div>`;
+      return `<div class="choices">${list.map((item) => {
+        const on = state.phase === "ack" && state[group] === item.id ? " on" : "";
+        return `<button type="button" class="choice${on}" data-act="choose" data-group="${group}" data-id="${esc(item.id)}"><strong>${esc(item.title)}</strong></button>`;
+      }).join("")}</div>`;
+    }
+
+    // 选完之后要说的话。句长尽量居中，让校史像故事一样往下讲。
+    function responseOf(group, id) {
+      const book = {
+        attitude: {
+          road: {
+            kicker: "去书院门前",
+            paragraphs: ["既想把这所学校的来路问清楚，我们便从1897年的书院门前走起。"]
+          },
+          steady: {
+            kicker: "去书院门前",
+            paragraphs: ["日子自然要安顿，来路也该知道，我们便先走到书院门前，再回头料理自己的课业。"]
+          },
+          make: {
+            kicker: "去书院门前",
+            paragraphs: ["也好，先看看前人是怎样把一件事情做成的，再来决定你这四年要做什么。"]
+          }
+        },
+        gate: {
+          right: {
+            kicker: "门边的一句",
+            paragraphs: ["你留在门边的是「只问是非，不计利害」。竺可桢后来解释求是，也曾说过要只问是非、不计利害。"]
+          },
+          solid: {
+            kicker: "门边的一句",
+            paragraphs: ["你留在门边的是把事情做实，而求是书院从开办那天起，就把讲求实学放在最前面。"]
+          },
+          use: {
+            kicker: "门边的一句",
+            paragraphs: ["你留在门边的是学了要有用，因为求是不能只停在纸面上，到头来还是要落到做事上。"]
+          }
+        },
+        pack: {
+          tool: {
+            kicker: "行囊里",
+            paragraphs: ["你想守住的是仪器，而图书和仪器当年都跟着学校西迁，研究因此没有停下来。"]
+          },
+          people: {
+            kicker: "行囊里",
+            paragraphs: ["你想守住的是人，课之所以还能留下来，正是因为师生仍在一处。"]
+          },
+          light: {
+            kicker: "行囊里",
+            paragraphs: ["你想守住的是还能上课的那一点光，学校每到一处，都会重新把课开起来。"]
+          }
+        },
+        promise: {
+          read: {
+            kicker: "四年之约",
+            paragraphs: [
+              "一门课若要讲给别人听，自己先得把它读明白，这原是求是最基本的功夫。",
+              "求是走了一百三十年，靠的是有人把真问题做到底，也靠有人把所学用出去。你的四年，就接在这条路上。"
+            ]
+          },
+          make: {
+            kicker: "四年之约",
+            paragraphs: [
+              "会读书之后，还得学会动手，这一步便是创造的起点。",
+              "求是走了一百三十年，靠的是有人把真问题做到底，也靠有人把所学用出去。你的四年，就接在这条路上。"
+            ]
+          },
+          person: {
+            kicker: "四年之约",
+            paragraphs: [
+              "学问若能落到具体的人身上，才算真正有了着落。",
+              "求是走了一百三十年，靠的是有人把真问题做到底，也靠有人把所学用出去。你的四年，就接在这条路上。"
+            ]
+          }
+        }
+      };
+      return (book[group] && book[group][id]) || { kicker: "", paragraphs: [] };
+    }
+
+    function mergerSuccessModal() {
+      return {
+        kicker: "一个名字",
+        paragraphs: [
+          "四所学校都连上了，合并以后校名仍是浙江大学。当时的校园里有玉泉、西溪、华家池、湖滨，还有之江。",
+          "你脚下的紫金港是后来才建起来的，启真湖便在这里。"
+        ],
+        primaryLabel: "走向求是大讲堂",
+        primaryAct: "go",
+        primaryId: "hall",
+        dismiss: "none"
+      };
     }
 
     function coverHtml() {
       return `
         ${art("cover")}
         <p class="kicker">一名新生走过的一百三十年</p>
-        <h2>先把路走一遍</h2>
+        <h2>把这条路走一遍</h2>
         <div class="prose">
-          <p>左边是求是鹰，右边是紫金港的求是大讲堂。2027年5月21日，浙江大学建校一百三十周年。你是新生。这条路不打分，只请你走一遍：先看见学校从哪里来，再为这四年选定一件要做的事。</p>
+          <p>左边停着求是鹰，右边是紫金港的求是大讲堂。到2027年5月21日，浙江大学便满一百三十岁。你是刚进校的新生，这条路并不打分，只请你慢慢走上一遍：先看学校从何处来，再为自己的四年选定一件真正要做的事。</p>
         </div>
         <div class="stack">
           <button type="button" class="primary" data-act="go" data-id="zijin">从求是大讲堂出发</button>
@@ -459,75 +609,57 @@
         ${footHtml()}`;
     }
 
-    function askBlock(group, question, list, ack) {
-      if (state.phase === "ack") {
-        return `<div class="ack"><p>${ack}</p></div><div class="stack" style="margin-top:16px"><button type="button" class="primary" data-act="next">${group === "promise" ? "走向湖边" : "继续往前"}</button></div>`;
-      }
+    function askBlock(group, question, list) {
       return `<p class="ask">${question}</p>${choiceButtons(group, list)}`;
     }
 
     function zijinHtml() {
-      const ack = {
-        road: "那就从1897年的书院门前走起。",
-        steady: "日子要安顿，来路也要知道。我们先走到书院门前。",
-        make: "也好。先看见前人怎样把事情做成，再决定你的四年。"
-      }[state.attitude] || "";
       return `
         ${art("hall")}
         <p class="kicker">紫金港 · 求是大讲堂</p>
         <h2>报到</h2>
         <div class="prose">
-          <p>你走进紫金港，先看见求是大讲堂。台阶很宽，屋顶很大，是今天校园里最容易认出的房子。学校的一百三十年，就从这里往回看。</p>
+          <p>你走进紫金港，最先看见的是求是大讲堂。台阶铺得很宽，屋顶也压得很稳，是今天校园里最容易被人认出来的一座房子。学校的一百三十年，不妨就从这里回头望去。</p>
         </div>
-        ${askBlock("attitude", "你想先做哪一件？", [
+        ${askBlock("attitude", "你想先从哪一件事做起？", [
           { id: "road", title: "把这所学校的来路问清楚" },
-          { id: "steady", title: "先把自己的课和日子安顿好" },
+          { id: "steady", title: "先把自己的功课和日子安顿好" },
           { id: "make", title: "我想知道，读书之外还能做成什么" }
-        ], ack)}
+        ])}
         ${footHtml()}`;
     }
 
     function academyHtml() {
-      const ack = {
-        right: "你留下的是「只问是非，不计利害」。竺可桢后来解释求是，说过要只问是非、不计利害。",
-        solid: "你留下的是做实。求是书院从开办起，就把讲求实学放在前面。",
-        use: "你留下的是「学了要有用」。求是不能只停在纸面上，最后要落到做事上。"
-      }[state.gate] || "";
       return `
         ${art("gate")}
         <p class="kicker">一八九七</p>
         <h2>书院门</h2>
         <div class="prose">
-          <p>1897年5月21日，求是书院在杭州蒲场巷的普慈寺开学。浙江巡抚廖寿丰奏请设立，杭州知府林启任总办。书院以讲求实学为第一义，并逐渐形成务求实学、存是去非的学风。</p>
-          <p>「求是」当时是书院的名字。1938年11月1日，竺可桢在广西宜山的开学典礼上，提出以这两个字为校训；同月19日，校务会议正式通过。今天的校训「求是创新」，是1988年5月5日确定的。</p>
+          <p>1897年5月21日，求是书院在杭州蒲场巷的普慈寺里开学。浙江巡抚廖寿丰奏请设立，杭州知府林启出任总办。书院把讲求实学当作第一义，日子久了，便渐渐养成务求实学、存是去非的风气。</p>
+          <p>「求是」二字，当时还只是书院的名字。1938年11月1日，竺可桢在广西宜山的开学典礼上提出，拿这两个字做校训；同月19日，校务会议正式通过。今天所用的校训「求是创新」，则是到1988年5月5日才确定下来的。</p>
         </div>
-        ${askBlock("gate", "如果今天由你在门边留下一句，你留哪一句？", [
+        ${askBlock("gate", "倘若今天由你在门边留下一句，你愿意留哪一句？", [
           { id: "right", title: "只问是非，不计利害" },
           { id: "solid", title: "把事情做实" },
           { id: "use", title: "学了要有用" }
-        ], ack)}
+        ])}
         ${footHtml()}`;
     }
 
     function westHtml() {
-      const ack = {
-        tool: "你想守住的是仪器。历史上，图书和仪器随学校西迁，研究没有停下来。",
-        people: "你想守住的是人。课能留下来，首先是因为师生还在一起。",
-        light: "你想守住的是还能上课的光。学校每到一处，就重新把课开起来。"
-      }[state.pack] || "";
       return `
         ${art("west")}
         <p class="kicker">竺可桢校长 · 西迁</p>
         <h2>把课留下</h2>
         <div class="prose">
-          <p>这一位，是率领西迁的竺可桢校长。1937年抗战爆发后，学校经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴。迁移的路上，课没有停。1946年秋，学校回到杭州。这段历程后来被称作「文军长征」。</p>
-          <p>物理学家王淦昌关于验证中微子的实验方案，是在湄潭完成的。</p>
+          <p>站在面前的这一位，是率领学校西迁的竺可桢校长。1937年抗战爆发以后，学校一路经过浙江建德，江西吉安、泰和，广西宜山，到1940年转入贵州的遵义、湄潭与永兴。人在路上走，课却没有停，直到1946年秋才回到杭州，后人把这段历程称作「文军长征」。</p>
+          <p>物理学家王淦昌提出验证中微子的那份实验方案，也是在湄潭完成的。</p>
         </div>
-        ${askBlock("pack", "行囊已经很重。如果还能再留住一件，你留什么？", [
+        ${askBlock("pack", "行囊已经很重了，倘若还能再留住一件，你愿意留下什么？", [
           { id: "tool", title: "实验仪器" },
           { id: "people", title: "学生名册" },
           { id: "light", title: "今晚还能亮着的灯" }
-        ], ack)}
+        ])}
         ${footHtml()}`;
     }
 
@@ -546,32 +678,21 @@
         const cls = used ? "ok" : "";
         return `<button type="button" class="place ${cls}" data-act="place" data-id="${item.id}" ${used ? "disabled" : ""}>${esc(item.name)}</button>`;
       }).join("");
-      let note = done ? "" : (state.feedback || "先点一所学校，再点一个校园。");
-      if (state.mistakes >= 2 && !done) {
-        note += "提示：浙江大学在玉泉，杭州大学在西溪。园中有池的是华家池，靠近西湖东岸的是湖滨。";
-      }
-      const success = done ? `
-        <div class="ack">
-          <p>对上了。四校合并以后，校名仍是浙江大学。当时的校园有玉泉、西溪、华家池、湖滨和之江。你脚下的紫金港是后来建的，启真湖就在这里。</p>
-          <ul class="pairs">
-            <li>浙江大学 — 玉泉</li>
-            <li>杭州大学 — 西溪</li>
-            <li>浙江农业大学 — 华家池</li>
-            <li>浙江医科大学 — 湖滨</li>
-          </ul>
-        </div>
-        <div class="stack" style="margin-top:16px"><button type="button" class="primary" data-act="go" data-id="hall">走向求是大讲堂</button></div>` : "";
+      const note = done ? "" : `<p class="note">先点左边的一所学校，再点右边它当时所在的校园。</p>`;
+      const again = done && !state.modal
+        ? `<div class="stack" style="margin-top:16px"><button type="button" class="ghost" data-act="reread-merger">再读一遍</button><button type="button" class="primary" data-act="go" data-id="hall">走向求是大讲堂</button></div>`
+        : "";
       return `
         ${art("doors")}
         <p class="kicker">一九五二—一九九八</p>
         <h2>一个名字</h2>
         <div class="prose">
-          <p>1952年院系调整时，浙江大学的主体在杭州重组为若干所院校，后来发展为原浙江大学、杭州大学、浙江农业大学和浙江医科大学。四校同根同源。1998年9月15日，四校合并，新的浙江大学成立。</p>
+          <p>1952年院系调整的时候，浙江大学的主体在杭州被分作若干所院校，后来渐渐成为原浙江大学、杭州大学、浙江农业大学和浙江医科大学。四校同根同源，到1998年9月15日重新合并，新的浙江大学就此成立。</p>
         </div>
-        <p class="ask">把四所学校和当时的主要校园连起来。</p>
+        <p class="ask">请把四所学校和它们当时的主要校园连起来。</p>
         <div class="match"><div class="stack">${schools}</div><div class="stack">${places}</div></div>
-        <p class="note ${state.mistakes >= 2 && !done ? "hint" : ""}" id="match-note">${note}</p>
-        ${success}
+        ${note}
+        ${again}
         ${footHtml()}`;
     }
 
@@ -582,34 +703,28 @@
         <p class="kicker">今天的房子 · 一九三八年的校训</p>
         <h2>求是大讲堂</h2>
         <div class="prose">
-          <p>左边这位，是1938年的竺可桢校长。右边这座，是今天紫金港的求是大讲堂。房子是后来建的，校训是校长在广西宜山定下的。</p>
-          <p>你在书院门边留下的那一句，现在送到大讲堂前：${esc(sentence)}。</p>
+          <p>左边这一位，是1938年的竺可桢校长；右边这一座，是今天紫金港的求是大讲堂。房子是后来才建起来的，校训却是校长早年在广西宜山定下的。</p>
+          <p>你在书院门边留下的那一句，此刻便送到大讲堂前：「${esc(sentence)}」。</p>
         </div>
         <div class="stack">
-          <button type="button" class="primary" data-act="go" data-id="promise">带着这句话去过四年</button>
+          <button type="button" class="primary" data-act="go" data-id="promise">带着这句话，去过这四年</button>
         </div>
         ${footHtml()}`;
     }
 
     function promiseHtml() {
-      const tail = "求是走了一百三十年，靠的是有人把真问题做到底，也靠有人把所学用出去。你的四年，接在这条路上。";
-      const ack = {
-        read: `读明白，才讲得清。这是求是的基本功。${tail}`,
-        make: `会读书之后，还要会动手。这一步，就是创造的起点。${tail}`,
-        person: `学问落到具体的人身上，才算有了着落。${tail}`
-      }[state.promise] || "";
       return `
         ${art("lakeside")}
         <p class="kicker">大讲堂前 · 启真湖</p>
         <h2>你的四年</h2>
         <div class="prose">
-          <p>来路先走到这里。书院的门、西迁的课、合并后的校名，都留在身后。前面四年，是你自己的。</p>
+          <p>来路走到这里，书院的门、西迁路上没有停过的课，还有合并以后仍旧叫浙江大学的校名，都留在了身后。从这里往前的四年，才是你自己要走的。</p>
         </div>
-        ${askBlock("promise", "这四年，你愿意先做哪一件？", [
+        ${askBlock("promise", "这四年里，你愿意先做哪一件？", [
           { id: "read", title: "把一门课读到能讲给别人听" },
           { id: "make", title: "为一个真实的问题动手做一次" },
           { id: "person", title: "把学到的东西用到具体的人身上" }
-        ], ack)}
+        ])}
         ${footHtml()}`;
     }
 
@@ -621,7 +736,7 @@
         <p class="kicker">二〇二七 · 五月二十一日</p>
         <h2>留一句</h2>
         <div class="prose">
-          <p>2027年5月21日，浙江大学建校一百三十周年。把你想对学校说的一句，留在启真湖边。</p>
+          <p>2027年5月21日是浙江大学建校一百三十周年。你若有一句想对学校说的话，不妨留在启真湖边。</p>
         </div>
         <label for="wish">湖边的一句</label>
         <textarea id="wish" maxlength="80">${esc(state.wish)}</textarea>
@@ -634,7 +749,7 @@
       const maps = {
         attitude: {
           road: "把这所学校的来路问清楚",
-          steady: "先把自己的课和日子安顿好",
+          steady: "先把自己的功课和日子安顿好",
           make: "我想知道，读书之外还能做成什么"
         },
         gate: {
@@ -676,7 +791,6 @@
           <button type="button" class="ghost" data-act="copy">复制分享文字</button>
           <button type="button" class="ghost" data-act="restart">再走一次</button>
         </div>
-        <p class="note" id="copy-note"></p>
         ${footHtml()}`;
     }
 
@@ -685,17 +799,59 @@
         <p class="kicker">提交前请读完</p>
         <h2>创作说明</h2>
         <div class="prose">
-          <p>作品名称：求是路。类别：创意类，网页游戏。页面不署个人姓名。</p>
-          <p>选题对应三项主题：探寻校史荣光，传承求是精神；启航求是新程，谱写青春之声；从「会读书」到「会创造」。玩家以新生身份走过校史，再为这四年选定一件要做的事。</p>
-          <p>玩家的选择是个人回应，不改写史实。史实写在每一幕的叙述里。</p>
-          <p>人工智能使用说明：使用场景是网页游戏的文案、界面和交互代码；生成工具是 Cursor 中的 Grok。游戏初稿由人工智能生成，占代码和正文的绝大部分。作者确定了作品主题和游戏形式，并要求页面不出现个人姓名，校史按学校公开记载核对，中文再通读修改。</p>
-          <p>史实依据学校公开记载，主要包括这些内容。1897年5月21日，求是书院在杭州蒲场巷普慈寺开学。浙江巡抚廖寿丰奏请设立，杭州知府林启任总办。1937年后学校西迁，经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴，1946年秋回到杭州。这段历程后来被称作「文军长征」。1938年11月1日，竺可桢在宜山提出以「求是」为校训，同月19日校务会议通过。1988年5月5日，校训确定为「求是创新」。1952年院系调整后，学校主体后来发展为四所同根同源的大学，1998年9月15日重新合并。玉泉、西溪、华家池、湖滨分别对应四所学校当时的主要校园，之江也是合并时的校区。紫金港是后来新建的校区。王淦昌关于验证中微子的实验方案，是在湄潭完成的。2027年5月21日为建校一百三十周年。</p>
-          <p>原创说明：求是鹰、求是大讲堂、竺可桢校长和书院牌坊都是原创简笔，用来让人认出学校，不是校徽标准图，也不是照片，没有使用校歌全文。学号、班级、任课教师和作者姓名，由作者另行交给任课教师，不写在这个网页上。</p>
+          <p>作品名叫《求是路》，类别是创意类网页游戏。页面上不署个人姓名。</p>
+          <p>选题对着三项主题来：探寻校史荣光，传承求是精神；启航求是新程，谱写青春之声；从「会读书」到「会创造」。玩家以一名新生的身份走过校史，再为这四年选定一件要做的事。玩家的选择只是个人的回应，并不改写史实，史实写在每一幕的叙述里。</p>
+          <p>人工智能用在网页游戏的文案、界面和交互代码上，生成工具是 Cursor 中的 Grok。游戏初稿由人工智能生成，占了代码和正文的绝大部分。作者确定了作品主题和游戏形式，并要求页面不出现个人姓名，校史按学校公开记载核对，中文再通读修改。</p>
+          <p>史实依据学校公开记载。1897年5月21日，求是书院在杭州蒲场巷普慈寺开学，由浙江巡抚廖寿丰奏请设立，杭州知府林启任总办。1937年以后学校西迁，经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴，1946年秋回到杭州。这段历程后来被称作「文军长征」。</p>
+          <p>1938年11月1日，竺可桢在宜山提出以「求是」为校训，同月19日由校务会议通过。1988年5月5日，校训确定为「求是创新」。1952年院系调整以后，学校主体后来发展为四所同根同源的大学，1998年9月15日重新合并。玉泉、西溪、华家池、湖滨分别对应四所学校当时的主要校园，之江也是合并时的校区，紫金港则是后来新建的校区。</p>
+          <p>王淦昌关于验证中微子的实验方案，是在湄潭完成的。2027年5月21日，为建校一百三十周年。</p>
+          <p>求是鹰、求是大讲堂、竺可桢校长和书院牌坊，都是原创简笔，用来让人认出学校，不是校徽标准图，也不是照片。页面没有使用校歌全文。学号、班级、任课教师和作者姓名，由作者另行交给任课教师，不写在这个网页上。</p>
         </div>
         <div class="stack">
           <button type="button" class="primary" data-act="back">返回</button>
         </div>
         ${footHtml()}`;
+    }
+
+    function modalHtml() {
+      const m = state.modal;
+      if (!m) return "";
+      const paras = (m.paragraphs || []).map((p) => `<p>${esc(p)}</p>`).join("");
+      const extra = m.extra ? `<p class="modal-extra">${esc(m.extra)}</p>` : "";
+      const kicker = m.kicker ? `<p class="kicker">${esc(m.kicker)}</p>` : "";
+      const secondary = m.secondaryLabel
+        ? `<button type="button" class="ghost" data-act="modal-close">${esc(m.secondaryLabel)}</button>`
+        : "";
+      const idAttr = m.primaryId ? ` data-id="${esc(m.primaryId)}"` : "";
+      const mask = m.dismiss === "none"
+        ? `<div class="modal-mask"></div>`
+        : `<button type="button" class="modal-mask" data-act="modal-close" aria-label="关闭"></button>`;
+      return `
+        <div class="modal">
+          ${mask}
+          <div class="modal-box" role="dialog" aria-modal="true" aria-label="${esc(m.kicker || "提示")}">
+            ${kicker}
+            <div class="prose">${paras}${extra}</div>
+            <div class="stack modal-actions">
+              <button type="button" class="primary" data-act="${esc(m.primaryAct)}"${idAttr}>${esc(m.primaryLabel)}</button>
+              ${secondary}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function openModal(modal) {
+      state.modal = modal;
+      render();
+    }
+
+    // 关掉弹窗。若是选项后的回应，关掉以后可以重选。
+    function dismissModal() {
+      if (!state.modal || state.modal.dismiss === "none") return;
+      const mode = state.modal.dismiss;
+      state.modal = null;
+      if (mode === "ask") state.phase = "ask";
+      render();
     }
 
     function render() {
@@ -711,7 +867,13 @@
         card: cardHtml,
         about: aboutHtml
       }[state.scene];
-      app.innerHTML = `${stepsHtml()}<section class="scene">${body()}</section>`;
+      app.innerHTML = `${stepsHtml()}<section class="scene">${body()}</section>${modalHtml()}`;
+      document.body.classList.toggle("modal-open", Boolean(state.modal));
+      if (state.modal) {
+        const btn = app.querySelector(".modal-box .primary");
+        if (btn) btn.focus();
+        return;
+      }
       if (state.scene === "cover") {
         const input = document.getElementById("name");
         if (input) input.focus();
@@ -733,6 +895,7 @@
         state.selectedSchool = "";
         state.mistakes = 0;
       }
+      state.modal = null;
       state.phase = "ask";
       state.scene = scene;
       render();
@@ -756,40 +919,80 @@
     function choose(group, id) {
       state[group] = id;
       state.phase = "ack";
-      render();
+      const copy = responseOf(group, id);
+      openModal({
+        kicker: copy.kicker,
+        paragraphs: copy.paragraphs,
+        primaryLabel: group === "promise" ? "走向湖边" : "继续往前",
+        primaryAct: "next",
+        secondaryLabel: "再想一想",
+        dismiss: "ask"
+      });
     }
 
     function pickSchool(id) {
       if (state.matched[id]) return;
+      const school = findSchool(id);
       state.selectedSchool = id;
-      state.feedback = `已选${findSchool(id).name}，再点一个校园。`;
-      render();
+      openModal({
+        kicker: school.name,
+        paragraphs: [`你的目光先停在${school.name}，接着再去认一认它当时的校园。`],
+        primaryLabel: "去点校园",
+        primaryAct: "modal-close",
+        dismiss: "close"
+      });
     }
 
     function pickPlace(placeId) {
       if (Object.values(state.matched).includes(placeId)) return;
       if (!state.selectedSchool) {
-        state.feedback = "先点一所学校，再点一个校园。";
-        render();
+        openModal({
+          kicker: "还差一步",
+          paragraphs: ["先点左边的一所学校，再去点它当时的校园。"],
+          primaryLabel: "知道了",
+          primaryAct: "modal-close",
+          dismiss: "close"
+        });
         return;
       }
       const school = findSchool(state.selectedSchool);
       if (school.place === placeId) {
         state.matched[state.selectedSchool] = placeId;
         state.selectedSchool = "";
-        state.feedback = `${school.name}对应${findPlace(placeId).name}。`;
-      } else {
-        state.mistakes += 1;
-        state.selectedSchool = "";
-        state.feedback = "这一对不对，再试一次。";
+        const done = Object.keys(state.matched).length === SCHOOLS.length;
+        if (done) {
+          openModal(mergerSuccessModal());
+          return;
+        }
+        openModal({
+          kicker: "连上了",
+          paragraphs: [`${school.name}当时的主要校园，正是${findPlace(placeId).name}。`],
+          primaryLabel: "知道了",
+          primaryAct: "modal-close",
+          dismiss: "close"
+        });
+        return;
       }
-      render();
+      state.mistakes += 1;
+      state.selectedSchool = "";
+      const paragraphs = ["这一对还没有对上，不妨再试一次。"];
+      if (state.mistakes >= 2) {
+        paragraphs.push("若是想不起来，可以记一记：浙江大学在玉泉，杭州大学在西溪；园中有池的是华家池，靠近西湖东岸的是湖滨。");
+      }
+      openModal({
+        kicker: "还没对上",
+        paragraphs,
+        primaryLabel: "知道了",
+        primaryAct: "modal-close",
+        dismiss: "close"
+      });
     }
 
     function backStep() {
       const order = ["cover", "zijin", "academy", "west", "merger", "hall", "promise", "wish"];
       const index = order.indexOf(state.scene);
       if (index <= 0) return;
+      state.modal = null;
       state.phase = "ask";
       state.scene = order[index - 1];
       render();
@@ -798,7 +1001,7 @@
 
     function shareText() {
       const link = location.href.split("#")[0];
-      return `我走完了网页游戏《求是路》。一名新生从求是鹰和求是大讲堂出发，走过书院、西迁、四校合并，再把自己的一句送到一百三十周年前。2027年5月21日是浙江大学建校一百三十周年。\n${link}`;
+      return `我走完了网页游戏《求是路》。一名新生从求是鹰和求是大讲堂出发，走过书院、西迁和四校合并，把自己的一句话送到一百三十周年的前头。2027年5月21日，是浙江大学建校一百三十周年。\n${link}`;
     }
 
     function wrapText(ctx, text, maxWidth) {
@@ -829,10 +1032,10 @@
       ctx.scale(scale, scale);
       ctx.fillStyle = "#f3efe6";
       ctx.fillRect(0, 0, width, height);
-      ctx.strokeStyle = "#0b3a75";
+      ctx.strokeStyle = "#8b1e23";
       ctx.lineWidth = 4;
       ctx.strokeRect(48, 48, width - 96, height - 96);
-      ctx.fillStyle = "#0b3a75";
+      ctx.fillStyle = "#8b1e23";
       ctx.font = '64px "Songti SC", "SimSun", "Microsoft YaHei", serif';
       ctx.fillText("百卅贺帖", 96, 180);
       ctx.fillStyle = "#8a6232";
@@ -859,7 +1062,7 @@
         });
         y += 28;
       });
-      ctx.fillStyle = "#0b3a75";
+      ctx.fillStyle = "#8b1e23";
       ctx.font = '32px "Microsoft YaHei", sans-serif';
       ctx.fillText("浙江大学建校一百三十周年", 96, 1480);
       const link = document.createElement("a");
@@ -869,13 +1072,25 @@
     }
 
     async function copyShare() {
-      const note = document.getElementById("copy-note");
       const text = shareText();
       try {
         await navigator.clipboard.writeText(text);
-        if (note) note.textContent = "分享文字已复制，可以贴到小红书。";
+        openModal({
+          kicker: "可以带走",
+          paragraphs: ["这几句已经复制好了，贴到小红书上便可以。"],
+          primaryLabel: "知道了",
+          primaryAct: "modal-close",
+          dismiss: "close"
+        });
       } catch (error) {
-        if (note) note.textContent = text;
+        openModal({
+          kicker: "请亲手抄下",
+          paragraphs: ["浏览器没有允许自动复制。你可以把下面这段话选中，再自己复制走。"],
+          extra: text,
+          primaryLabel: "知道了",
+          primaryAct: "modal-close",
+          dismiss: "close"
+        });
       }
     }
 
@@ -890,8 +1105,8 @@
       state.matched = {};
       state.placeOrder = [];
       state.mistakes = 0;
-      state.feedback = "";
       state.phase = "ask";
+      state.modal = null;
       render();
       window.scrollTo(0, 0);
     }
@@ -937,6 +1152,14 @@
         copyShare();
         return;
       }
+      if (act === "modal-close") {
+        dismissModal();
+        return;
+      }
+      if (act === "reread-merger") {
+        openModal(mergerSuccessModal());
+        return;
+      }
       if (act === "restart") {
         restart();
         return;
@@ -947,12 +1170,14 @@
       }
       if (act === "about") {
         state.returnTo = state.scene === "about" ? state.returnTo : state.scene;
+        state.modal = null;
         state.scene = "about";
         render();
         window.scrollTo(0, 0);
         return;
       }
       if (act === "back") {
+        state.modal = null;
         state.scene = state.returnTo || "cover";
         render();
         window.scrollTo(0, 0);
@@ -973,6 +1198,10 @@
         }
         if (button) button.disabled = over;
       }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") dismissModal();
     });
 
     render();
