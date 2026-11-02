@@ -28,9 +28,9 @@
         radial-gradient(1200px 500px at 50% -10%, #fff 0%, transparent 55%),
         var(--paper);
       color: var(--ink);
-      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-      font-size: 18px;
-      line-height: 1.75;
+      font-family: "Songti SC", "STSong", "SimSun", "PMingLiU", serif;
+      font-size: 20px;
+      line-height: 1.8;
     }
 
     button, input, textarea { font: inherit; color: inherit; }
@@ -38,9 +38,12 @@
     button { cursor: pointer; }
 
     .wrap {
-      width: min(720px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 64px;
+      width: min(760px, calc(100% - 28px));
+      margin: 18px auto 28px;
+      padding: 26px 22px 48px;
+      background: #f7f3ea;
+      border: 2px solid var(--blue);
+      box-shadow: 0 0 0 7px #f3efe6, 0 0 0 8px var(--bronze);
     }
 
     .top {
@@ -63,7 +66,7 @@
 
     .years {
       margin: 0;
-      font-size: 16px;
+      font-size: 20px;
       letter-spacing: 0.08em;
       color: var(--bronze);
     }
@@ -75,7 +78,7 @@
       list-style: none;
       margin: 18px 0 0;
       padding: 0;
-      font-size: 16px;
+      font-size: 20px;
     }
 
     .steps li { color: var(--quiet); }
@@ -84,16 +87,7 @@
 
     .steps li.done { color: var(--ink); }
 
-    .scene { margin-top: 28px; animation: rise 0.45s ease; }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .scene { animation: none; }
-    }
+    .scene { margin-top: 28px; }
 
     .art { margin: 8px 0 18px; color: var(--blue); }
 
@@ -101,7 +95,7 @@
 
     .kicker {
       margin: 0 0 6px;
-      font-size: 16px;
+      font-size: 20px;
       letter-spacing: 0.16em;
       color: var(--bronze);
     }
@@ -143,9 +137,9 @@
     .choice span, .school span {
       display: block;
       margin-top: 4px;
-      font-size: 16px;
+      font-size: 20px;
       line-height: 1.6;
-      color: var(--quiet);
+      color: var(--ink);
     }
 
     .primary {
@@ -192,12 +186,12 @@
       background: #fff;
       border-radius: 4px;
       padding: 12px 14px;
-      font-size: 18px;
+      font-size: 20px;
     }
 
     textarea { min-height: 96px; resize: vertical; }
 
-    .count { margin: 8px 0 16px; font-size: 16px; color: var(--quiet); }
+    .count { margin: 8px 0 16px; font-size: 20px; color: var(--ink); }
 
     .count.over { color: var(--bronze); font-weight: 700; }
 
@@ -218,7 +212,7 @@
 
     .card dt {
       margin-top: 14px;
-      font-size: 16px;
+      font-size: 20px;
       color: var(--bronze);
     }
 
@@ -236,7 +230,7 @@
       margin-top: 28px;
       padding-top: 14px;
       border-top: 1px solid var(--line);
-      font-size: 16px;
+      font-size: 20px;
     }
 
     .foot button {
@@ -281,6 +275,7 @@
       { id: "academy", label: "书院" },
       { id: "west", label: "西迁" },
       { id: "merger", label: "四校" },
+      { id: "hall", label: "讲堂" },
       { id: "promise", label: "四年" },
       { id: "wish", label: "湖边" }
     ];
@@ -345,15 +340,80 @@
       return PLACES.find((item) => item.id === id);
     }
 
+    function stroke() {
+      return 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+    }
+
+    // 线描都是原创简笔，不是校徽标准图，也不是照片。
+    function eagleMark(x, y) {
+      const p = stroke();
+      return `
+        <circle ${p} cx="${x}" cy="${y}" r="62"/>
+        <path ${p} d="M${x} ${y - 4} C${x - 28} ${y - 36} ${x - 62} ${y - 28} ${x - 58} ${y + 8} C${x - 36} ${y - 6} ${x - 16} ${y - 2} ${x - 2} ${y + 8}"/>
+        <path ${p} d="M${x} ${y - 4} C${x + 28} ${y - 36} ${x + 62} ${y - 28} ${x + 58} ${y + 8} C${x + 36} ${y - 6} ${x + 16} ${y - 2} ${x + 2} ${y + 8}"/>
+        <path ${p} d="M${x - 8} ${y - 6} H${x + 8} L${x + 12} ${y + 36} L${x} ${y + 50} L${x - 12} ${y + 36} Z"/>
+        <path ${p} d="M${x + 6} ${y - 8} C${x + 16} ${y - 22} ${x + 28} ${y - 20} ${x + 30} ${y - 10}"/>
+        <path ${p} d="M${x + 30} ${y - 10} L${x + 42} ${y - 12}"/>
+        <path ${p} d="M${x - 10} ${y + 50} L${x} ${y + 62} L${x + 10} ${y + 50}"/>
+      `;
+    }
+
+    function hallMark(x, ground) {
+      const p = stroke();
+      return `
+        <path ${p} d="M${x - 210} ${ground} H${x + 210}"/>
+        <path ${p} d="M${x - 180} ${ground} V${ground - 18} H${x + 180} V${ground}"/>
+        <path ${p} d="M${x - 150} ${ground - 18} V${ground - 36} H${x + 150} V${ground - 18}"/>
+        <path ${p} d="M${x - 120} ${ground - 36} V${ground - 52} H${x + 120} V${ground - 36}"/>
+        <path ${p} d="M${x - 100} ${ground - 52} V${ground - 102} M${x - 55} ${ground - 52} V${ground - 102} M${x - 10} ${ground - 52} V${ground - 102} M${x + 10} ${ground - 52} V${ground - 102} M${x + 55} ${ground - 52} V${ground - 102} M${x + 100} ${ground - 52} V${ground - 102}"/>
+        <path ${p} d="M${x - 124} ${ground - 102} H${x + 124}"/>
+        <path ${p} d="M${x - 150} ${ground - 102} L${x} ${ground - 156} L${x + 150} ${ground - 102}"/>
+        <path ${p} d="M${x - 132} ${ground - 102} L${x} ${ground - 144} L${x + 132} ${ground - 102}"/>
+        <path ${p} d="M${x - 150} ${ground - 102} l-14 10 M${x + 150} ${ground - 102} l14 10"/>
+        <path ${p} d="M${x} ${ground - 156} V${ground - 168}"/>
+        <path ${p} d="M${x - 18} ${ground - 52} V${ground - 84} H${x + 18} V${ground - 52}"/>
+      `;
+    }
+
+    function zhuMark(x, y) {
+      const p = stroke();
+      return `
+        <circle ${p} cx="${x}" cy="${y}" r="74"/>
+        <path ${p} d="M${x - 24} ${y - 18} Q${x} ${y - 48} ${x + 24} ${y - 18}"/>
+        <circle ${p} cx="${x}" cy="${y - 8}" r="24"/>
+        <circle ${p} cx="${x - 10}" cy="${y - 6}" r="7"/>
+        <circle ${p} cx="${x + 10}" cy="${y - 6}" r="7"/>
+        <path ${p} d="M${x - 3} ${y - 6} H${x + 3}"/>
+        <path ${p} d="M${x} ${y - 2} V${y + 8}"/>
+        <path ${p} d="M${x - 8} ${y + 16} H${x + 8}"/>
+        <path ${p} d="M${x - 22} ${y + 8} v8 M${x + 22} ${y + 8} v8"/>
+        <path ${p} d="M${x - 12} ${y + 16} V${y + 40} M${x + 12} ${y + 16} V${y + 40}"/>
+        <path ${p} d="M${x - 48} ${y + 74} C${x - 28} ${y + 36} ${x + 28} ${y + 36} ${x + 48} ${y + 74}"/>
+      `;
+    }
+
+    function gateMark(x, ground) {
+      const p = stroke();
+      return `
+        <path ${p} d="M${x - 70} ${ground} V${ground - 78} M${x + 70} ${ground} V${ground - 78}"/>
+        <path ${p} d="M${x - 86} ${ground - 78} L${x} ${ground - 118} L${x + 86} ${ground - 78}"/>
+        <path ${p} d="M${x - 74} ${ground - 62} L${x} ${ground - 96} L${x + 74} ${ground - 62}"/>
+        <path ${p} d="M${x - 40} ${ground - 48} H${x + 40} V${ground - 18} H${x - 40} Z"/>
+        <path ${p} d="M${x - 96} ${ground} H${x + 96}"/>
+      `;
+    }
+
     function art(kind) {
-      const common = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
-      const paths = {
-        lake: `<svg viewBox="0 0 640 120" aria-hidden="true"><path ${common} d="M20 70c50-24 110-36 180-36 90 0 120 32 210 32 70 0 120-18 190-40"/><ellipse ${common} cx="230" cy="88" rx="86" ry="16"/></svg>`,
-        gate: `<svg viewBox="0 0 640 120" aria-hidden="true"><path ${common} d="M150 96V36h340v60"/><path ${common} d="M150 36c60-24 280-24 340 0"/><path ${common} d="M250 96V58h140v38"/><circle ${common} cx="320" cy="28" r="6"/></svg>`,
-        lamp: `<svg viewBox="0 0 640 120" aria-hidden="true"><path ${common} d="M40 90h560"/><path ${common} d="M250 90V48h28v42"/><path ${common} d="M246 48h36l-6 16h-24z"/><path ${common} d="M264 64v8"/></svg>`,
-        doors: `<svg viewBox="0 0 640 120" aria-hidden="true"><path ${common} d="M70 96V34h90v62M205 96V34h90v62M340 96V34h90v62M475 96V34h90v62"/></svg>`
+      const pictures = {
+        cover: `<svg role="img" aria-label="求是鹰与求是大讲堂线描" viewBox="0 0 640 230">${eagleMark(108, 118)}${hallMark(410, 204)}</svg>`,
+        hall: `<svg role="img" aria-label="求是大讲堂线描" viewBox="0 0 640 230">${hallMark(320, 206)}</svg>`,
+        gate: `<svg role="img" aria-label="求是书院牌坊线描" viewBox="0 0 640 210">${gateMark(320, 186)}</svg>`,
+        west: `<svg role="img" aria-label="竺可桢校长线描" viewBox="0 0 640 220">${zhuMark(250, 104)}<path ${stroke()} d="M40 190 H600"/><path ${stroke()} d="M470 190 V128 H500 V190"/><path ${stroke()} d="M464 128 H506 L494 150 H476 Z"/></svg>`,
+        doors: `<svg role="img" aria-label="四座校园门线描" viewBox="0 0 640 330">${gateMark(160, 145)}${gateMark(480, 145)}${gateMark(160, 310)}${gateMark(480, 310)}</svg>`,
+        hallzhu: `<svg role="img" aria-label="竺可桢校长与求是大讲堂线描" viewBox="0 0 640 250">${zhuMark(120, 120)}${hallMark(430, 220)}</svg>`,
+        lakeside: `<svg role="img" aria-label="求是大讲堂与启真湖线描" viewBox="0 0 640 240">${hallMark(320, 168)}<ellipse ${stroke()} cx="320" cy="206" rx="150" ry="16"/></svg>`
       };
-      return `<div class="art">${paths[kind] || ""}</div>`;
+      return `<div class="art">${pictures[kind] || ""}</div>`;
     }
 
     function stepsHtml() {
@@ -376,7 +436,7 @@
       const back = ["cover", "card", "about"].includes(state.scene)
         ? ""
         : `<p><button type="button" data-act="back-step">上一步</button></p>`;
-      return `<div class="foot">${back}<p>俞丁悦 · 浙江大学「素养」课传播实践 · 创意类网页游戏</p><p>校史依据学校公开记载。文案与交互由人工智能辅助生成。${about}</p></div>`;
+      return `<div class="foot">${back}<p>浙江大学「素养」课传播实践 · 创意类网页游戏</p><p>校史依据学校公开记载。文案与交互由人工智能辅助生成。线描为原创简笔，不是校徽原图。${about}</p></div>`;
     }
 
     function choiceButtons(group, list) {
@@ -387,16 +447,14 @@
 
     function coverHtml() {
       return `
-        ${art("lake")}
+        ${art("cover")}
         <p class="kicker">一名新生走过的一百三十年</p>
         <h2>先把路走一遍</h2>
         <div class="prose">
-          <p>2027年5月21日，浙江大学建校一百三十周年。你是新生。这条路不打分，只请你走一遍：先看见学校从哪里来，再为这四年选定一件要做的事。</p>
+          <p>左边是求是鹰，右边是紫金港的求是大讲堂。2027年5月21日，浙江大学建校一百三十周年。你是新生。这条路不打分，只请你走一遍：先看见学校从哪里来，再为这四年选定一件要做的事。</p>
         </div>
-        <label for="name">怎么称呼你</label>
-        <input id="name" type="text" maxlength="12" autocomplete="name" placeholder="例如：俞丁悦" value="${esc(state.name)}">
-        <div class="stack" style="margin-top:16px">
-          <button type="button" class="primary" data-act="go" data-id="zijin">从紫金港出发</button>
+        <div class="stack">
+          <button type="button" class="primary" data-act="go" data-id="zijin">从求是大讲堂出发</button>
         </div>
         ${footHtml()}`;
     }
@@ -415,11 +473,11 @@
         make: "也好。先看见前人怎样把事情做成，再决定你的四年。"
       }[state.attitude] || "";
       return `
-        ${art("lake")}
-        <p class="kicker">紫金港 · 2026年秋</p>
+        ${art("hall")}
+        <p class="kicker">紫金港 · 求是大讲堂</p>
         <h2>报到</h2>
         <div class="prose">
-          <p>你走进紫金港。行李还没放稳，启真湖就在旁边。学校的一百三十年，就摆在这条路上。</p>
+          <p>你走进紫金港，先看见求是大讲堂。台阶很宽，屋顶很大，是今天校园里最容易认出的房子。学校的一百三十年，就从这里往回看。</p>
         </div>
         ${askBlock("attitude", "你想先做哪一件？", [
           { id: "road", title: "把这所学校的来路问清楚" },
@@ -458,11 +516,11 @@
         light: "你想守住的是还能上课的光。学校每到一处，就重新把课开起来。"
       }[state.pack] || "";
       return `
-        ${art("lamp")}
-        <p class="kicker">一九三七—一九四六</p>
+        ${art("west")}
+        <p class="kicker">竺可桢校长 · 西迁</p>
         <h2>把课留下</h2>
         <div class="prose">
-          <p>1937年抗战爆发后，竺可桢校长率领师生西迁办学。学校经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴。迁移的路上，课没有停。1946年秋，学校回到杭州。这段历程后来被称作「文军长征」。</p>
+          <p>这一位，是率领西迁的竺可桢校长。1937年抗战爆发后，学校经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴。迁移的路上，课没有停。1946年秋，学校回到杭州。这段历程后来被称作「文军长征」。</p>
           <p>物理学家王淦昌关于验证中微子的实验方案，是在湄潭完成的。</p>
         </div>
         ${askBlock("pack", "行囊已经很重。如果还能再留住一件，你留什么？", [
@@ -502,7 +560,7 @@
             <li>浙江医科大学 — 湖滨</li>
           </ul>
         </div>
-        <div class="stack" style="margin-top:16px"><button type="button" class="primary" data-act="go" data-id="promise">走向自己的四年</button></div>` : "";
+        <div class="stack" style="margin-top:16px"><button type="button" class="primary" data-act="go" data-id="hall">走向求是大讲堂</button></div>` : "";
       return `
         ${art("doors")}
         <p class="kicker">一九五二—一九九八</p>
@@ -517,6 +575,22 @@
         ${footHtml()}`;
     }
 
+    function hallHtml() {
+      const sentence = labelOf("gate", state.gate);
+      return `
+        ${art("hallzhu")}
+        <p class="kicker">今天的房子 · 一九三八年的校训</p>
+        <h2>求是大讲堂</h2>
+        <div class="prose">
+          <p>左边这位，是1938年的竺可桢校长。右边这座，是今天紫金港的求是大讲堂。房子是后来建的，校训是校长在广西宜山定下的。</p>
+          <p>你在书院门边留下的那一句，现在送到大讲堂前：${esc(sentence)}。</p>
+        </div>
+        <div class="stack">
+          <button type="button" class="primary" data-act="go" data-id="promise">带着这句话去过四年</button>
+        </div>
+        ${footHtml()}`;
+    }
+
     function promiseHtml() {
       const tail = "求是走了一百三十年，靠的是有人把真问题做到底，也靠有人把所学用出去。你的四年，接在这条路上。";
       const ack = {
@@ -525,8 +599,8 @@
         person: `学问落到具体的人身上，才算有了着落。${tail}`
       }[state.promise] || "";
       return `
-        ${art("lake")}
-        <p class="kicker">启真湖</p>
+        ${art("lakeside")}
+        <p class="kicker">大讲堂前 · 启真湖</p>
         <h2>你的四年</h2>
         <div class="prose">
           <p>来路先走到这里。书院的门、西迁的课、合并后的校名，都留在身后。前面四年，是你自己的。</p>
@@ -543,7 +617,7 @@
       const count = charCount(state.wish.trim());
       const over = count > 40 || count === 0;
       return `
-        ${art("lake")}
+        ${art("lakeside")}
         <p class="kicker">二〇二七 · 五月二十一日</p>
         <h2>留一句</h2>
         <div class="prose">
@@ -585,9 +659,9 @@
     function cardHtml() {
       return `
         <article class="card" id="result-card">
+          ${art("cover")}
           <p class="kicker">1897—2027</p>
-          <h2>我的求是路</h2>
-          <p class="who">${esc(displayName())}</p>
+          <h2>百卅贺帖</h2>
           <dl>
             <dt>出发时</dt><dd>${esc(labelOf("attitude", state.attitude))}</dd>
             <dt>书院门边</dt><dd>${esc(labelOf("gate", state.gate))}</dd>
@@ -611,12 +685,12 @@
         <p class="kicker">提交前请读完</p>
         <h2>创作说明</h2>
         <div class="prose">
-          <p>作品名称：求是路。类别：创意类，网页游戏。作者：俞丁悦。</p>
+          <p>作品名称：求是路。类别：创意类，网页游戏。页面不署个人姓名。</p>
           <p>选题对应三项主题：探寻校史荣光，传承求是精神；启航求是新程，谱写青春之声；从「会读书」到「会创造」。玩家以新生身份走过校史，再为这四年选定一件要做的事。</p>
           <p>玩家的选择是个人回应，不改写史实。史实写在每一幕的叙述里。</p>
-          <p>人工智能使用说明：使用场景是网页游戏的文案、界面和交互代码；生成工具是 Cursor 中的 Grok。游戏初稿由人工智能生成，占代码和正文的绝大部分。作者确定了作品主题、游戏形式和署名，并要求按学校公开记载核对校史、修改中文表达。作者提交前应再通读一遍定稿。</p>
+          <p>人工智能使用说明：使用场景是网页游戏的文案、界面和交互代码；生成工具是 Cursor 中的 Grok。游戏初稿由人工智能生成，占代码和正文的绝大部分。作者确定了作品主题和游戏形式，并要求页面不出现个人姓名，校史按学校公开记载核对，中文再通读修改。</p>
           <p>史实依据学校公开记载，主要包括这些内容。1897年5月21日，求是书院在杭州蒲场巷普慈寺开学。浙江巡抚廖寿丰奏请设立，杭州知府林启任总办。1937年后学校西迁，经过浙江建德，江西吉安、泰和，广西宜山，1940年转到贵州遵义、湄潭、永兴，1946年秋回到杭州。这段历程后来被称作「文军长征」。1938年11月1日，竺可桢在宜山提出以「求是」为校训，同月19日校务会议通过。1988年5月5日，校训确定为「求是创新」。1952年院系调整后，学校主体后来发展为四所同根同源的大学，1998年9月15日重新合并。玉泉、西溪、华家池、湖滨分别对应四所学校当时的主要校园，之江也是合并时的校区。紫金港是后来新建的校区。王淦昌关于验证中微子的实验方案，是在湄潭完成的。2027年5月21日为建校一百三十周年。</p>
-          <p>原创说明：画面用代码绘制，没有使用校徽、校歌全文和他人摄影。玩家填写的姓名和祝福，属于玩家本人。学号、班级和任课教师，由作者在提交给任课教师时另行写明。</p>
+          <p>原创说明：求是鹰、求是大讲堂、竺可桢校长和书院牌坊都是原创简笔，用来让人认出学校，不是校徽标准图，也不是照片，没有使用校歌全文。学号、班级、任课教师和作者姓名，由作者另行交给任课教师，不写在这个网页上。</p>
         </div>
         <div class="stack">
           <button type="button" class="primary" data-act="back">返回</button>
@@ -633,6 +707,7 @@
         merger: mergerHtml,
         promise: promiseHtml,
         wish: wishHtml,
+        hall: hallHtml,
         card: cardHtml,
         about: aboutHtml
       }[state.scene];
@@ -712,7 +787,7 @@
     }
 
     function backStep() {
-      const order = ["cover", "zijin", "academy", "west", "merger", "promise", "wish"];
+      const order = ["cover", "zijin", "academy", "west", "merger", "hall", "promise", "wish"];
       const index = order.indexOf(state.scene);
       if (index <= 0) return;
       state.phase = "ask";
@@ -723,7 +798,7 @@
 
     function shareText() {
       const link = location.href.split("#")[0];
-      return `我走完了网页游戏《求是路》。它用一名新生的视角，走过浙江大学一百三十年：求是书院、西迁办学、四校合并，再到自己的四年。2027年5月21日是建校一百三十周年。\n${link}`;
+      return `我走完了网页游戏《求是路》。一名新生从求是鹰和求是大讲堂出发，走过书院、西迁、四校合并，再把自己的一句送到一百三十周年前。2027年5月21日是浙江大学建校一百三十周年。\n${link}`;
     }
 
     function wrapText(ctx, text, maxWidth) {
@@ -759,13 +834,10 @@
       ctx.strokeRect(48, 48, width - 96, height - 96);
       ctx.fillStyle = "#0b3a75";
       ctx.font = '64px "Songti SC", "SimSun", "Microsoft YaHei", serif';
-      ctx.fillText("求是路", 96, 180);
+      ctx.fillText("百卅贺帖", 96, 180);
       ctx.fillStyle = "#8a6232";
-      ctx.font = '32px "Microsoft YaHei", sans-serif';
-      ctx.fillText("1897—2027", 96, 240);
-      ctx.fillStyle = "#1b1916";
-      ctx.font = '42px "Microsoft YaHei", sans-serif';
-      ctx.fillText(displayName(), 96, 340);
+      ctx.font = '36px "Microsoft YaHei", sans-serif';
+      ctx.fillText("1897—2027", 96, 250);
       const rows = [
         ["出发时", labelOf("attitude", state.attitude)],
         ["书院门边", labelOf("gate", state.gate)],
@@ -773,10 +845,10 @@
         ["四年之约", labelOf("promise", state.promise)],
         ["湖边的一句", state.wish.trim()]
       ];
-      let y = 430;
+      let y = 360;
       rows.forEach(([label, value]) => {
         ctx.fillStyle = "#8a6232";
-        ctx.font = '28px "Microsoft YaHei", sans-serif';
+        ctx.font = '36px "Microsoft YaHei", sans-serif';
         ctx.fillText(label, 96, y);
         y += 48;
         ctx.fillStyle = "#1b1916";
@@ -792,7 +864,7 @@
       ctx.fillText("浙江大学建校一百三十周年", 96, 1480);
       const link = document.createElement("a");
       link.href = canvas.toDataURL("image/png");
-      link.download = `求是路-${displayName()}.png`;
+      link.download = "求是路-百卅贺帖.png";
       link.click();
     }
 
@@ -830,10 +902,6 @@
       const act = el.dataset.act;
       const id = el.dataset.id || "";
       if (act === "go") {
-        if (state.scene === "cover") {
-          const input = document.getElementById("name");
-          state.name = input ? input.value : state.name;
-        }
         go(id);
         return;
       }
